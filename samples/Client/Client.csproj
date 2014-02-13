@@ -43,7 +43,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Channel\Streamer.csproj">
+    <ProjectReference Include="..\..\src\Streamer\Streamer.csproj">
       <Project>{dc438c04-f863-4741-b99c-73d4f8b03d56}</Project>
       <Name>Streamer</Name>
     </ProjectReference>
