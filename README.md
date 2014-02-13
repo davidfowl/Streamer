@@ -2,6 +2,12 @@
 
 RPC over a network should be simpler so here you go. Streamer offers a simple API for RPC over any bidirectional stream.
 
+## NuGet
+
+```
+Install-Package Streamer
+```
+
 ## Server
 
 ```C#
