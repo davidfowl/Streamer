@@ -66,7 +66,7 @@ await client.ConnectAsync(IPAddress.Loopback, 1335);
 var channel = new Channel(client.GetStream());
 
 // Create a proxy to the adder interface
-var adder = channel.As<IAdder>(channel);
+var adder = channel.As<IAdder>();
 
 // Invoke a method and get a result
 var result = await adder.Increment(0);
