@@ -28,7 +28,7 @@ namespace Client
 
             var channel = new Channel(client.GetStream());
 
-            var adder = Channel.CreateProxy<IAdder>(channel);
+            var adder = channel.As<IAdder>();
 
             int value = 0;
 
