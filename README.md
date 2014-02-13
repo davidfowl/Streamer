@@ -48,7 +48,7 @@ await client.ConnectAsync(IPAddress.Loopback, 1335);
 var channel = new Channel(client.GetStream());
 
 // Invoke a method and get a result
-var result = await channel.Invoke<int>("SomeMethod");
+var result = await channel.Invoke<int>("Increment");
 ```
 
 ## Typed Clients
