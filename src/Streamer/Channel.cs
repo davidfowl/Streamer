@@ -31,6 +31,11 @@ namespace Streamer
             new Thread(() => ReadLoop()).Start();
         }
 
+        public static T CreateProxy<T>(Channel channel)
+        {
+            return TypedChannelBuilder<T>.Build(channel);
+        }
+
         public Task Invoke(string name, params object[] args)
         {
             return Invoke<object>(name, args);

@@ -28,24 +28,17 @@ namespace Client
 
             var channel = new Channel(client.GetStream());
 
+            var adder = Channel.CreateProxy<IAdder>(channel);
+
             int value = 0;
 
             while (true)
             {
                 Console.ReadLine();
 
-                value = await channel.Invoke<int>("Increment", value);
+                value = await adder.Increment(value);
 
-                Console.WriteLine("Received " + value);
-
-                try
-                {
-                    await channel.Invoke("DoesnotExist");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
+                Console.WriteLine(value);
             }
         }
     }
