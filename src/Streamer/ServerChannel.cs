@@ -19,12 +19,12 @@ namespace Streamer
 
         private bool _isBound;
 
+        private readonly JsonSerializer _serializer;
+
         public ServerChannel(Stream stream)
         {
             _stream = stream;
-
-            // REVIEW: Thread per connection is bad :), use an async read loop
-            new Thread(() => ReadLoop()).Start();
+            _serializer = new JsonSerializer();
         }
 
         public IDisposable Bind(object value)
@@ -91,17 +91,15 @@ namespace Streamer
             });
         }
 
-        private void ReadLoop()
+        public async Task StartAsync()
         {
             try
             {
-                var serializer = new JsonSerializer();
                 while (true)
                 {
+                    // REVIEW: This does a blocking read
                     var reader = new JsonTextReader(new StreamReader(_stream));
-
-
-                    var request = serializer.Deserialize<Request>(reader);
+                    var request = _serializer.Deserialize<Request>(reader);
 
                     Response response = null;
 
@@ -120,7 +118,7 @@ namespace Streamer
                         };
                     }
 
-                    Write(response);
+                    await WriteAsync(response);
                 }
             }
             catch (Exception ex)
@@ -129,13 +127,13 @@ namespace Streamer
             }
         }
 
-        private void Write(object value)
+        private Task WriteAsync(object value)
         {
             var data = JsonConvert.SerializeObject(value);
 
             var bytes = Encoding.UTF8.GetBytes(data);
 
-            _stream.Write(bytes, 0, bytes.Length);
+            return _stream.WriteAsync(bytes, 0, bytes.Length);
         }
 
         public void Dispose()

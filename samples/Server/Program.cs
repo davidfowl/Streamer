@@ -28,6 +28,7 @@ namespace Server
 
                 var channel = Channel.CreateServer(client.GetStream());
                 channel.Bind(new Handler());
+                await channel.StartAsync();
             }
         }
     }
