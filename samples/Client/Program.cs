@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Sample;
 using Streamer;
 
 namespace Client
@@ -28,15 +29,11 @@ namespace Client
 
             var channel = Channel.CreateClient(client.GetStream());
 
-            var adder = channel.As<IAdder>();
-
-            int value = 0;
+            var echoHandler = channel.As<IEchoHandler>();
 
             while (true)
             {
-                Console.ReadLine();
-
-                value = await adder.Increment(value);
+                var value = await echoHandler.EchoAsync(Console.ReadLine());
 
                 Console.WriteLine(value);
             }

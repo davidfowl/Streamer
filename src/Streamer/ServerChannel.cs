@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Streamer
 {
-    public class ServerChannel : IDisposable
+    public class ServerChannel
     {
         private readonly Stream _stream;
 
@@ -21,9 +21,8 @@ namespace Streamer
 
         private readonly JsonSerializer _serializer;
 
-        public ServerChannel(Stream stream)
+        public ServerChannel()
         {
-            _stream = stream;
             _serializer = new JsonSerializer();
         }
 
@@ -38,18 +37,21 @@ namespace Streamer
 
             var methods = new List<string>();
 
-            foreach (var m in value.GetType().GetTypeInfo().DeclaredMethods.Where(m => m.IsPublic))
+            var type = value.GetType();
+            foreach (var m in type.GetTypeInfo().DeclaredMethods.Where(m => m.IsPublic))
             {
-                methods.Add(m.Name);
+                var methodName = type.FullName + "." + m.Name;
+
+                methods.Add(methodName);
 
                 var parameters = m.GetParameters();
 
-                if (_callbacks.ContainsKey(m.Name))
+                if (_callbacks.ContainsKey(methodName))
                 {
                     throw new NotSupportedException(String.Format("Duplicate definitions of {0}. Overloading is not supported.", m.Name));
                 }
 
-                _callbacks[m.Name] = request =>
+                _callbacks[methodName] = request =>
                 {
                     var response = new Response();
                     response.Id = request.Id;
@@ -91,7 +93,7 @@ namespace Streamer
             });
         }
 
-        public async Task StartAsync()
+        public async Task StartAsync(Stream stream)
         {
             try
             {
@@ -118,7 +120,7 @@ namespace Streamer
                         };
                     }
 
-                    await WriteAsync(response);
+                    await WriteAsync(stream, response);
                 }
             }
             catch (Exception ex)
@@ -127,18 +129,13 @@ namespace Streamer
             }
         }
 
-        private Task WriteAsync(object value)
+        private Task WriteAsync(Stream stream, object value)
         {
             var data = JsonConvert.SerializeObject(value);
 
             var bytes = Encoding.UTF8.GetBytes(data);
 
-            return _stream.WriteAsync(bytes, 0, bytes.Length);
-        }
-
-        public void Dispose()
-        {
-            _stream.Dispose();
+            return stream.WriteAsync(bytes, 0, bytes.Length);
         }
 
         private class DisposableAction : IDisposable

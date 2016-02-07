@@ -29,12 +29,12 @@ namespace Streamer
             return TypedChannelBuilder<T>.Build(this);
         }
 
-        public Task Invoke(string name, params object[] args)
+        public Task InvokeAsync(string name, params object[] args)
         {
-            return Invoke<object>(name, args);
+            return InvokeAsync<object>(name, args);
         }
 
-        public Task<T> Invoke<T>(string name, params object[] args)
+        public Task<T> InvokeAsync<T>(string name, params object[] args)
         {
             int id = Interlocked.Increment(ref _id);
 

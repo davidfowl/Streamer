@@ -9,9 +9,9 @@ namespace Streamer
             return new ClientChannel(stream);
         }
 
-        public static ServerChannel CreateServer(Stream stream)
+        public static ServerChannel CreateServer()
         {
-            return new ServerChannel(stream);
+            return new ServerChannel();
         }
     }
 }

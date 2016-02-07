@@ -104,15 +104,15 @@ namespace Streamer
 
             ILGenerator generator = methodBuilder.GetILGenerator();
 
-            // Declare local variable to store the arguments to IClientProxy.Invoke
+            // Declare local variable to store the arguments to ClientChannel.Invoke
             generator.DeclareLocal(typeof(object[]));
 
             // Get IClientProxy
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Ldfld, proxyField);
 
-            // The first argument to IClientProxy.Invoke is this method's name
-            generator.Emit(OpCodes.Ldstr, interfaceMethodInfo.Name);
+            // The first argument to ClientChannel.Invoke is this method's name
+            generator.Emit(OpCodes.Ldstr, ComputeRPCMethodName(interfaceMethodInfo));
 
             // Create an new object array to hold all the parameters to this method
             generator.Emit(OpCodes.Ldc_I4, parameters.Length);
@@ -140,6 +140,19 @@ namespace Streamer
             }
 
             generator.Emit(OpCodes.Ret);
+        }
+
+        private static string ComputeRPCMethodName(MethodInfo interfaceMethodInfo)
+        {
+            // Namespace.IBlah.MethodAsync = Namespace.Blah.Method
+            var methodName = interfaceMethodInfo.Name;
+
+            if (methodName.EndsWith("Async"))
+            {
+                methodName = methodName.Substring(0, methodName.Length - "Async".Length);
+            }
+
+            return typeof(T).Namespace + "." + typeof(T).Name.TrimStart('I') + "." + methodName;
         }
 
         private static void VerifyInterface()
@@ -206,7 +219,7 @@ namespace Streamer
 
             public ChannelMethods()
             {
-                var invokeMethods = typeof(ClientChannel).GetMethods().Where(m => m.Name == "Invoke");
+                var invokeMethods = typeof(ClientChannel).GetMethods().Where(m => m.Name == "InvokeAsync");
 
                 // There's only 2 invoke methods
 

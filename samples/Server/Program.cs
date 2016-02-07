@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Sample;
 using Streamer;
 
 namespace Server
@@ -26,9 +27,13 @@ namespace Server
 
                 Console.WriteLine("Client connected {0}", client.Client.LocalEndPoint);
 
-                var channel = Channel.CreateServer(client.GetStream());
-                channel.Bind(new Handler());
-                await channel.StartAsync();
+                var channel = Channel.CreateServer();
+                channel.Bind(new EchoHandler());
+
+                using (var stream = client.GetStream())
+                {
+                    await channel.StartAsync(stream);
+                }
             }
         }
     }

@@ -5,6 +5,7 @@ namespace Streamer
 {
     public class Response
     {
+        [JsonProperty("id")]
         public int Id { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore, PropertyName = "result")]
