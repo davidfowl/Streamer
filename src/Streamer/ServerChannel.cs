@@ -13,8 +13,6 @@ namespace Streamer
 {
     public class ServerChannel
     {
-        private readonly Stream _stream;
-
         private readonly Dictionary<string, Func<Request, Response>> _callbacks = new Dictionary<string, Func<Request, Response>>(StringComparer.OrdinalIgnoreCase);
 
         private bool _isBound;
@@ -100,7 +98,7 @@ namespace Streamer
                 while (true)
                 {
                     // REVIEW: This does a blocking read
-                    var reader = new JsonTextReader(new StreamReader(_stream));
+                    var reader = new JsonTextReader(new StreamReader(stream));
                     var request = _serializer.Deserialize<Request>(reader);
 
                     Response response = null;
