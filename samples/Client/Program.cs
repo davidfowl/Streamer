@@ -36,7 +36,7 @@ namespace Client
             {
                 Console.ReadLine();
 
-                value = await channel.Invoke<int>("Increment", value);
+                value = await adder.Increment(value);
 
                 Console.WriteLine(value);
             }
