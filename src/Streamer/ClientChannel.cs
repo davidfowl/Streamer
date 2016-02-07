@@ -1,0 +1,140 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+namespace Streamer
+{
+    public class ClientChannel : IDisposable
+    {
+        private int _id;
+        private readonly Dictionary<long, Action<Response>> _invocations = new Dictionary<long, Action<Response>>();
+        private readonly Stream _stream;
+        private readonly JsonSerializer _serializer = new JsonSerializer();
+
+        public ClientChannel(Stream stream)
+        {
+            _stream = stream;
+
+            new Thread(() => ReadLoop()).Start();
+        }
+
+        public T As<T>()
+        {
+            return TypedChannelBuilder<T>.Build(this);
+        }
+
+        public Task Invoke(string name, params object[] args)
+        {
+            return Invoke<object>(name, args);
+        }
+
+        public Task<T> Invoke<T>(string name, params object[] args)
+        {
+            int id = Interlocked.Increment(ref _id);
+
+            var request = new Request
+            {
+                Id = id,
+                Method = name,
+                Args = args.Select(a => JToken.FromObject(a)).ToArray()
+            };
+
+            var tcs = new TaskCompletionSource<T>();
+
+            lock (_invocations)
+            {
+                _invocations[id] = response =>
+                {
+                    try
+                    {
+                        // If there's no response then cancel the call
+                        if (response == null)
+                        {
+                            tcs.TrySetCanceled();
+                        }
+                        else if (response.Error != null)
+                        {
+                            tcs.TrySetException(new InvalidOperationException(response.Error));
+                        }
+                        else if (response.Result != null)
+                        {
+                            tcs.TrySetResult(response.Result.ToObject<T>());
+                        }
+                        else
+                        {
+                            tcs.TrySetResult(default(T));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.TrySetException(ex);
+                    }
+                };
+            }
+
+            Write(request);
+
+            return tcs.Task;
+        }
+
+        private void ReadLoop()
+        {
+            try
+            {
+                while (true)
+                {
+                    var reader = new JsonTextReader(new StreamReader(_stream));
+
+                    var response = _serializer.Deserialize<Response>(reader);
+
+                    lock (_invocations)
+                    {
+                        Action<Response> invocation;
+                        if (_invocations.TryGetValue(response.Id, out invocation))
+                        {
+                            invocation(response);
+
+                            _invocations.Remove(response.Id);
+                        }
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                // Any pending callbacks need to be cleaned up
+                lock (_invocations)
+                {
+                    foreach (var invocation in _invocations)
+                    {
+                        invocation.Value(null);
+                    }
+                }
+            }
+        }
+
+        private void Write(object value)
+        {
+            // TODO: Pooling and async writes
+            var jsonTextWriter = new JsonTextWriter(new StreamWriter(_stream) { AutoFlush = true });
+
+            _serializer.Serialize(jsonTextWriter, value);
+        }
+
+        public void Dispose()
+        {
+            _stream.Dispose();
+        }
+    }
+
+}
