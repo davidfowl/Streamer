@@ -43,10 +43,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Channel.cs" />
-    <Compile Include="MessageType.cs" />
+    <Compile Include="ClientChannel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Request.cs" />
     <Compile Include="Response.cs" />
+    <Compile Include="ServerChannel.cs" />
     <Compile Include="TypedChannelBuilder.cs" />
   </ItemGroup>
   <ItemGroup>

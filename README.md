@@ -19,7 +19,7 @@ while (true)
     var client = await server.AcceptTcpClientAsync();
 
     // Create a channel to communicate with the client
-    var channel = new Channel(client.GetStream());
+    var channel = Channel.CreateServer(client.GetStream());
 
     // Bind the handler that will handle callbacks
     channel.Bind(new Handler());
@@ -45,7 +45,7 @@ var client = new TcpClient();
 await client.ConnectAsync(IPAddress.Loopback, 1335);
 
 // Create a channel so we can communicate with the server
-var channel = new Channel(client.GetStream());
+var channel = Channel.CreateClient(client.GetStream());
 
 // Invoke a method and get a result
 var result = await channel.Invoke<int>("Increment");

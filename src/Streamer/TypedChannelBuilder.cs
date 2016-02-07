@@ -11,11 +11,11 @@ namespace Streamer
         private const string clientModule = "Streamer.TypedChannel";
 
         // There is one static instance of _builder per T
-        private static Lazy<Func<Channel, T>> _builder = new Lazy<Func<Channel, T>>(() => GenerateChannelBuilder());
+        private static Lazy<Func<ClientChannel, T>> _builder = new Lazy<Func<ClientChannel, T>>(() => GenerateChannelBuilder());
 
         private static ChannelMethods _channelMethods = new ChannelMethods();
 
-        public static T Build(Channel channel)
+        public static T Build(ClientChannel channel)
         {
             return _builder.Value(channel);
         }
@@ -26,7 +26,7 @@ namespace Streamer
             var forceEvaluation = _builder.Value;
         }
 
-        private static Func<Channel, T> GenerateChannelBuilder()
+        private static Func<ClientChannel, T> GenerateChannelBuilder()
         {
             VerifyInterface();
 
@@ -43,7 +43,7 @@ namespace Streamer
             TypeBuilder type = moduleBuilder.DefineType(typeof(T).Name + "Impl", TypeAttributes.Public,
                 typeof(Object), new Type[] { typeof(T) });
 
-            FieldBuilder proxyField = type.DefineField("_channel", typeof(Channel), FieldAttributes.Private);
+            FieldBuilder proxyField = type.DefineField("_channel", typeof(ClientChannel), FieldAttributes.Private);
 
             BuildConstructor(type, proxyField);
 
@@ -63,7 +63,7 @@ namespace Streamer
                 null, new Type[] { }, null);
 
             method.SetReturnType(typeof(void));
-            method.SetParameters(typeof(Channel));
+            method.SetParameters(typeof(ClientChannel));
 
             ILGenerator generator = method.GetILGenerator();
 
@@ -206,7 +206,7 @@ namespace Streamer
 
             public ChannelMethods()
             {
-                var invokeMethods = typeof(Channel).GetMethods().Where(m => m.Name == "Invoke");
+                var invokeMethods = typeof(ClientChannel).GetMethods().Where(m => m.Name == "Invoke");
 
                 // There's only 2 invoke methods
 

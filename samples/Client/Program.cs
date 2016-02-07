@@ -26,7 +26,7 @@ namespace Client
 
             Console.WriteLine("Connected!");
 
-            var channel = new Channel(client.GetStream());
+            var channel = Channel.CreateClient(client.GetStream());
 
             var adder = channel.As<IAdder>();
 
@@ -36,7 +36,7 @@ namespace Client
             {
                 Console.ReadLine();
 
-                value = await adder.Increment(value);
+                value = await channel.Invoke<int>("Increment", value);
 
                 Console.WriteLine(value);
             }

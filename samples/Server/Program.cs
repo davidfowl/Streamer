@@ -26,7 +26,7 @@ namespace Server
 
                 Console.WriteLine("Client connected {0}", client.Client.LocalEndPoint);
 
-                var channel = new Channel(client.GetStream());
+                var channel = Channel.CreateServer(client.GetStream());
                 channel.Bind(new Handler());
             }
         }
